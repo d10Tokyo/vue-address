@@ -5,10 +5,13 @@
       color="primary"
       dark
     >
-      <v-app-bar-nav-icon @click="toggleSideMenu"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon v-show="$store.state.login_user" @click="toggleSideMenu"></v-app-bar-nav-icon>
       <v-toolbar-title>マイアドレス帳</v-toolbar-title>
 
       <v-spacer></v-spacer>
+      <v-toolbar-items v-if="$store.state.login_user">
+        <v-btn text @click="logout">ログアウト</v-btn>
+      </v-toolbar-items>
 
     </v-app-bar>
     <SideNav/>
@@ -20,6 +23,7 @@
 </template>
 
 <script>
+import firebase from 'firebase'
 import { mapActions } from 'vuex'
 import SideNav from '@/components/SideNav'
 
@@ -28,12 +32,24 @@ export default {
   components: {
     SideNav
   },
-
+  created() {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        this.setLoginUser(user)
+        if(this.$router.currentRoute.name === 'home') {
+          this.$router.push({name: 'addresses'}, () => {})
+        }
+      } else {
+        this.deleteLoginUser()
+        this.$router.push({name: 'home'}, () => {})
+      }
+    })
+  },
   data: () => ({
     //
   }),
   methods: {
-    ...mapActions(['toggleSideMenu'])
+    ...mapActions(['setLoginUser', 'toggleSideMenu', 'logout', 'deleteLoginUser'])
   }
 };
 </script>
